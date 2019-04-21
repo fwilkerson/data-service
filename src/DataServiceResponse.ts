@@ -5,7 +5,7 @@ export class DataServiceResponse<T> {
 export function mapResponseToDataServiceResponse<T>(resp: Response) {
   return new Promise<DataServiceResponse<T>>((resolve, reject) => {
     let promise: Promise<any>;
-    const contentType = resp.headers.get("Content-Type");
+    const contentType = resp.headers.get("Content-Type") || "";
     if (!resp.bodyUsed) {
       promise = Promise.resolve(null);
     } else if (/json/.test(contentType)) {

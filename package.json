@@ -1,0 +1,32 @@
+{
+  "name": "data-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel ./src --out-dir lib --extensions .ts",
+    "test": "jest",
+    "type-check": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fwilkerson/data-service.git"
+  },
+  "keywords": [],
+  "author": "Frank A. Wilkerson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fwilkerson/data-service/issues"
+  },
+  "homepage": "https://github.com/fwilkerson/data-service#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.4.3",
+    "@babel/core": "^7.4.3",
+    "@babel/plugin-proposal-class-properties": "^7.4.0",
+    "@babel/preset-env": "^7.4.3",
+    "@babel/preset-typescript": "^7.3.3",
+    "@types/jest": "^24.0.11",
+    "jest": "^24.7.1",
+    "typescript": "^3.4.4"
+  }
+}

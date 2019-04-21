@@ -9,7 +9,7 @@ export class DataServiceRequest<T> {
   private completeHandlers = new Set();
   private error: any;
   private errorHandlers = new Set();
-  private response: DataServiceResponse<T>;
+  private response?: DataServiceResponse<T>;
   private responseHandlers = new Set();
 
   constructor(
