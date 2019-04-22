@@ -1,16 +1,22 @@
 import { DataServiceRequest } from "./DataServiceRequest";
 
 export class DataService {
-  private inFlightRequests = new Set<AbortController>();
+  private pendingRequests = new Map<number, AbortController>();
 
   constructor(
-    public baseUrl: string = "",
-    public globalHeaders: Record<string, string> = {}
+    private baseUrl: string = "",
+    private globalHeaders: Record<string, string> = {},
+    private timeout: number = 5e3
   ) {}
 
-  initialize(baseUrl: string, globalHeaders: Record<string, string>) {
+  initialize(
+    baseUrl: string,
+    globalHeaders: Record<string, string>,
+    timeout: number
+  ) {
     this.baseUrl = baseUrl;
     this.globalHeaders = globalHeaders;
+    this.timeout = timeout;
   }
 
   get<T>(route: string, headers?: Record<string, string>) {
@@ -29,8 +35,9 @@ export class DataService {
     return this.createRequest<T>(route, "DELETE", headers);
   }
 
-  abortInFlightRequests() {
-    for (let controller of this.inFlightRequests.values()) {
+  abortPendingRequests() {
+    for (let [timeoutId, controller] of this.pendingRequests.entries()) {
+      clearTimeout(timeoutId);
       controller.abort();
     }
   }
@@ -41,8 +48,16 @@ export class DataService {
     headers?: Record<string, string>,
     body?: BodyInit
   ) {
-    let controller = new AbortController();
-    this.inFlightRequests.add(controller);
+    // setup abort & timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(controller.abort, this.timeout);
+    this.pendingRequests.set(timeoutId, controller);
+
+    if (body && typeof body === "object") {
+      // TODO: stringify
+    }
+
+    // initiate the request
     const request = new DataServiceRequest<T>(
       this.baseUrl + route,
       method,
@@ -50,7 +65,13 @@ export class DataService {
       controller,
       body
     );
-    request.onComplete(() => this.inFlightRequests.delete(controller));
+
+    // cleanup abort and timeout when completed
+    request.onComplete(() => {
+      clearTimeout(timeoutId);
+      this.pendingRequests.delete(timeoutId);
+    });
+
     return request;
   }
 }

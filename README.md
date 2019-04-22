@@ -6,11 +6,9 @@ Data service is a small utility intended to remove some boilerplate that goes in
 - [x] Applying global headers to each request
 - [x] Making the request cancellable
 - [x] Cancelling all inflight requests
-- [ ] Parsing a non Blob/FormData object to JSON & setting the content-type
-- [ ] Applying headers from a FormData body
+- [x] Parsing a non Blob/FormData object to JSON & setting the content-type
 - [x] Parsing the response body based on content type
-- [ ] Applying a request timeout
-- [ ] Retrying a failed request
+- [x] Applying a request timeout
 
 ```typescript
 const dataService = new DataService("/api/v1", {

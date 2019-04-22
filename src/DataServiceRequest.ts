@@ -4,7 +4,6 @@ import {
 } from "./DataServiceResponse";
 
 export class DataServiceRequest<T> {
-  private cancelHandlers = new Set();
   private cancelled = false;
   private completeHandlers = new Set();
   private error: any;
@@ -27,53 +26,48 @@ export class DataServiceRequest<T> {
     })
       .then(resp => mapResponseToDataServiceResponse<T>(resp))
       .then(resp => {
-        this.responseHandlers.forEach(callback => callback(resp));
+        this.responseHandlers.forEach(func => func(resp));
         this.response = resp;
       })
       .catch(error => {
         if (error && error.name === "AbortError") {
-          this.cancelHandlers.forEach(callback => callback());
+          this.cancelled = true;
         } else {
-          this.errorHandlers.forEach(callback => callback(error));
+          this.errorHandlers.forEach(func => func(error));
           this.error = error;
         }
       })
-      .then(() => this.completeHandlers.forEach(callback => callback()));
+      .then(() => this.completeHandlers.forEach(func => func(this.cancelled)));
   }
 
   cancel() {
     this.controller.abort();
-    this.cancelled = true;
   }
 
-  onCancel(callback: Function) {
-    this.cancelHandlers.add(callback);
-    if (this.cancelled) {
-      callback();
+  onComplete(func: (cancelled: boolean) => void) {
+    this.completeHandlers.add(func);
+    if (
+      this.error !== undefined ||
+      this.response !== undefined ||
+      this.cancelled
+    ) {
+      func(this.cancelled);
     }
     return this;
   }
 
-  onComplete(callback: Function) {
-    this.completeHandlers.add(callback);
-    if (this.error !== undefined || this.response !== undefined) {
-      callback();
-    }
-    return this;
-  }
-
-  onError(callback: (err: any) => void) {
-    this.errorHandlers.add(callback);
+  onError(func: (err: any) => void) {
+    this.errorHandlers.add(func);
     if (this.error !== undefined) {
-      callback(this.error);
+      func(this.error);
     }
     return this;
   }
 
-  onNext(callback: (resp: DataServiceResponse<T>) => void) {
-    this.responseHandlers.add(callback);
+  onNext(func: (resp: DataServiceResponse<T>) => void) {
+    this.responseHandlers.add(func);
     if (this.response !== undefined) {
-      callback(this.response);
+      func(this.response);
     }
     return this;
   }
